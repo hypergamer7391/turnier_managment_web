@@ -9,6 +9,7 @@ const routes = [
   { path: '/turnier-erstellen', component: TurnierErstellen },
   { path: '/turnier/:id', component: TurnierAnzeigen },
   { path: '/turnier/:id/bearbeiten', component: TurnierBearbeiten },
+  { path: '/impressum', component: () => import('../views/Impressum.vue') },
 ];
 
 const router = createRouter({

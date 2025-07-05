@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import AppFooter from '../components/AppFooter.vue'
 
 const tournaments = ref([])
 const loading = ref(true)
@@ -38,6 +39,7 @@ function goToTournament(id) {
     </ul>
     <div v-if="!loading && tournaments.length === 0">Keine Turniere gefunden.</div>
   </div>
+  <AppFooter />
 </template>
 
 <style scoped>

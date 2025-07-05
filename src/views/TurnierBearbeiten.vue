@@ -163,7 +163,7 @@ function fillNextRounds(data) {
 }
 
 onMounted(async () => {
-  const res = await axios.get(`http://localhost:3000/api/tournaments/${route.params.id}`);
+  const res = await axios.get(`https://turnier-managment-web-backend.onrender.com/api/tournaments/${route.params.id}`);
   tournament.value = res.data;
   // fillNextRounds(tournament.value.data); // NICHT direkt nach dem Laden aufrufen!
 });
@@ -176,7 +176,7 @@ function setWinner(roundIndex, matchIndex, winner) {
 
 async function saveChanges() {
   try {
-    await axios.put(`http://localhost:3000/api/tournaments/${tournament.value.id}`, {
+    await axios.put(`https://turnier-managment-web-backend.onrender.com/api/tournaments/${tournament.value.id}`, {
       data: tournament.value.data
     });
     alert('Erfolgreich gespeichert!');

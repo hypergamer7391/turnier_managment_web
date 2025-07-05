@@ -53,7 +53,7 @@ const totalRounds = ref(0)
 
 async function saveChanges() {
   try {
-    await axios.put(`http://localhost:3000/api/tournaments/${tournament.value.id}`, {
+    await axios.put(`https://turnier-managment-web-backend.onrender.com/api/tournaments/${tournament.value.id}`, {
       data: tournament.value.data
     });
     /* console.log("save", tournament.value.data) */
@@ -172,7 +172,7 @@ async function loadTournament() {
   loading.value = true
   error.value = null
   try {
-    const res = await axios.get(`http://localhost:3000/api/tournaments/${tournamentId}`)
+    const res = await axios.get(`https://turnier-managment-web-backend.onrender.com/api/tournaments/${tournamentId}`)
     tournament.value = res.data
       totalRounds.value = tournament.value.data.rounds.length
   } catch (e) {

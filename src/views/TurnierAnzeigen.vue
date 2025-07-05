@@ -147,6 +147,7 @@ const computedRounds = computed(() => {
 function getRoundAbbr(roundIndex) {
   const abbrs = ['AF', 'VF', 'HF', 'F'];
   const abbrIndex = abbrs.length - (totalRounds.value - roundIndex);
+  console.log("getRoundAbbr", roundIndex, totalRounds.value, abbrIndex, abbrs[abbrIndex])
   if (abbrIndex >= 0 && abbrIndex < abbrs.length) {
     return abbrs[abbrIndex];
   }

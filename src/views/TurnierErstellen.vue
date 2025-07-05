@@ -12,16 +12,57 @@
   </div>
 
   <div v-else class="container">
-    <h1>Turnier erstellen</h1>
+    <h1>{{ mode === 'tournament' ? 'Turnier erstellen' : 'Teams generieren' }}</h1>
 
-    <input v-model="name" placeholder="Turniername" />
+    <!-- Moduswahl -->
+    <label class="mode-select">
+      Modus:
+      <select v-model="mode">
+        <option value="tournament">Turnier</option>
+        <option value="teams">Teams</option>
+      </select>
+    </label>
+
+    <!-- Gemeinsame Eingaben -->
+    <input v-model="name" placeholder="Titel" :disabled="mode === 'teams'" />
+
+    <!-- Teammodus‑spezifische Eingabe -->
+    <input
+      v-if="mode === 'teams'"
+      v-model.number="teamSize"
+      type="number"
+      min="2"
+      placeholder="Teamgröße (z.B. 3)"
+    />
+
     <textarea v-model="players" placeholder="Spieler pro Zeile"></textarea>
 
-    <button @click="submit">Turnier erstellen</button>
+    <button @click="submit">
+      {{ mode === 'tournament' ? 'Turnier erstellen' : 'Teams generieren' }}
+    </button>
 
-    <div v-if="createdId" class="success">
-      ✅ Turnier erstellt!
-      <RouterLink :to="`/turnier/${createdId}`">Zum Turnier anzeigen</RouterLink>
+    <!-- Rückmeldung im Turniermodus -->
+    <div v-if="mode === 'tournament' && createdId" class="success">
+      ✅ Turnier erstellt!
+      <RouterLink :to="`/turnier/${createdId}`">Zum Turnier</RouterLink>
+    </div>
+
+    <div v-if="mode === 'teams' && createdId" class="success">
+  ✅ Team-Turnier erstellt!
+  <RouterLink :to="`/turnier/${createdId}`">Zum Turnier</RouterLink>
+</div>
+
+    <!-- Rückmeldung im Teammodus -->
+    <div v-if="mode === 'teams' && teams.length" class="teams">
+      <h2>Generierte Teams</h2>
+      <ol>
+        <li v-for="(team, idx) in teams" :key="idx">
+          <strong>Team {{ idx + 1 }}</strong>
+          <ul>
+            <li v-for="member in team" :key="member">{{ member }}</li>
+          </ul>
+        </li>
+      </ol>
     </div>
   </div>
 </template>
@@ -31,13 +72,12 @@ import { ref } from 'vue';
 import axios from 'axios';
 import { RouterLink } from 'vue-router';
 
-// Login-Logik
+// ── Login ‑‑────────────────────────────────────────────────────────────
 const isAdmin = ref(false);
 const adminPassword = ref('');
 const loginError = ref('');
 
 function login() {
-  // Beispiel-Passwort: "stufenfest"
   if (adminPassword.value === 'stufenfest') {
     isAdmin.value = true;
     loginError.value = '';
@@ -46,29 +86,65 @@ function login() {
   }
 }
 
+// ── Formular‑State ─────────────────────────────────────────────────────
+const mode = ref('tournament'); // 'tournament' | 'teams'
 const name = ref('');
 const players = ref('');
+const teamSize = ref(2);
 const createdId = ref(null);
+const teams = ref([]);
 
+// ── Absenden ──────────────────────────────────────────────────────────
 async function submit() {
   const playerList = players.value
     .split('\n')
     .map(p => p.trim())
     .filter(Boolean);
 
-  if (name.value.length < 3 || playerList.length < 2) {
-    alert('Mindestens 2 Spieler und Turniername notwendig');
+  if (playerList.length < 2) {
+    alert('Mindestens 2 Spieler notwendig');
     return;
   }
 
-  try {
-    const res = await axios.post('https://turnier-managment-web-backend.onrender.com/api/tournaments', {
-      name: name.value,
-      players: playerList,
-    });
-    createdId.value = res.data.id;
-  } catch (err) {
-    alert('Fehler beim Speichern');
+  if (mode.value === 'tournament') {
+    if (name.value.length < 3) {
+      alert('Turniername notwendig');
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        'https://turnier-managment-web-backend.onrender.com/api/tournaments',
+        {
+          name: name.value,
+          players: playerList,
+        }
+      );
+      createdId.value = res.data.id;
+    } catch (err) {
+      alert('Fehler beim Speichern');
+    }
+  } else {
+    // Teammodus
+    if (!teamSize.value || teamSize.value < 2) {
+      alert('Teamgröße muss ≥ 2 sein');
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        'https://turnier-managment-web-backend.onrender.com/api/teams',
+        {
+          players: playerList,
+          teamSize: teamSize.value,
+        }
+      );
+      createdId.value = res.data.id;
+      teams.value = res.data.teams;
+
+    } catch (err) {
+      alert('Fehler beim Generieren');
+    }
   }
 }
 </script>
@@ -76,6 +152,11 @@ async function submit() {
 <style scoped>
 .container {
   padding: 20px;
+}
+
+.mode-select {
+  display: block;
+  margin-bottom: 10px;
 }
 
 textarea {
@@ -100,6 +181,10 @@ button {
 .success {
   margin-top: 20px;
   color: green;
+}
+
+.teams {
+  margin-top: 20px;
 }
 
 .login-container {

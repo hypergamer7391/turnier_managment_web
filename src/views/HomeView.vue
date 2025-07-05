@@ -11,7 +11,7 @@ const router = useRouter()
 
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/tournaments')
+    const res = await axios.get('https://turnier-managment-web-backend.onrender.com/api/tournaments')
     tournaments.value = res.data
   } catch (e) {
     error.value = 'Fehler beim Laden der Turniere'

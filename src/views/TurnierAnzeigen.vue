@@ -60,7 +60,7 @@
   </div>
 
   <!-- Lade‑/Fehler‑States -->
-  <div v-if="loading" class="loading">Turnier wird geladen …</div>
+  <div v-if="loading" class="loading">Turnier wird geladen …(bis zu 1 Minute)</div>
   <div v-if="error" class="error">{{ error }}</div>
 
   <!-- Spieler Stats Popup -->

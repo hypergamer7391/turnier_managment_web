@@ -28,7 +28,7 @@ function goToTournament(id) {
 <template>
   <div class="home-container">
     <h2>Wähle dein Turnier!</h2>
-    <div v-if="loading">Lade Turniere...</div>
+    <div v-if="loading">Lade Turniere...(bis zu 1 Minute)</div>
     <div v-if="error" class="error">{{ error }}</div>
     <ul v-if="!loading && tournaments.length">
       <li v-for="t in tournaments" :key="t.id">

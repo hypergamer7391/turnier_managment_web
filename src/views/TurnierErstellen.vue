@@ -78,7 +78,7 @@ const adminPassword = ref('');
 const loginError = ref('');
 
 function login() {
-  if (adminPassword.value === 'stufenfest') {
+  if (adminPassword.value === 'geheim') {
     isAdmin.value = true;
     loginError.value = '';
   } else {

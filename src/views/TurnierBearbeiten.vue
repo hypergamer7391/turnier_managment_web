@@ -27,10 +27,25 @@
           class="match"
         >
           <div class="names-row">
-            <span class="player-name">{{ match.player1 || '---' }}</span>
-            <span class="vs">vs</span>
-            <span class="player-name">{{ match.player2 || '---' }}</span>
-          </div>
+  <template v-if="roundIndex === 0">
+    <input
+      v-model="match.player1"
+      class="player-name-input"
+      placeholder="Spieler 1"
+    />
+    <span class="vs">vs</span>
+    <input
+      v-model="match.player2"
+      class="player-name-input"
+      placeholder="Spieler 2"
+    />
+  </template>
+  <template v-else>
+    <span class="player-name">{{ match.player1 || '---' }}</span>
+    <span class="vs">vs</span>
+    <span class="player-name">{{ match.player2 || '---' }}</span>
+  </template>
+</div>
           <div class="scores-row">
             <input
               v-model="match.result1"

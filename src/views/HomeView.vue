@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import AppFooter from '../components/AppFooter.vue'
+import HeroComponent from '../components/HomeHero.vue'
+import TournamentComponent from '../components/TournamentComponent.vue'
 
 const tournaments = ref([])
 const loading = ref(true)
@@ -26,19 +28,10 @@ function goToTournament(id) {
 </script>
 
 <template>
-  <div class="home-container">
-    <h2>Wähle dein Turnier!</h2>
-    <div v-if="loading">Lade Turniere...(bis zu 1 Minute)</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <ul v-if="!loading && tournaments.length">
-      <li v-for="t in tournaments" :key="t.id">
-        <a @click.prevent="goToTournament(t.id)" href="#">
-          {{ t.name }}
-        </a>
-      </li>
-    </ul>
-    <div v-if="!loading && tournaments.length === 0">Keine Turniere gefunden.</div>
-  </div>
+  <HeroComponent />
+  <TournamentComponent />
+
+  
   <AppFooter />
 </template>
 
@@ -73,5 +66,5 @@ a:hover {
 .error {
   color: #c00;
   margin-top: 10px;
-}
+} 
 </style>

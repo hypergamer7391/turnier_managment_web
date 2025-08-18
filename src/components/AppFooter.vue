@@ -12,7 +12,7 @@ import { RouterLink } from 'vue-router'
 
 <style scoped>
 .app-footer {
-  margin-top: 40px;
+  margin-top: 0px;
   padding: 18px 0 10px 0;
   text-align: center;
   color: #888;

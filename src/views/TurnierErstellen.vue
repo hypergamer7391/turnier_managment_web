@@ -18,8 +18,15 @@
     <label class="mode-select">
       Modus:
       <select v-model="mode">
-        <option value="tournament">Turnier</option>
+        <option value="tournament">Einzel</option>
         <option value="teams">Teams</option>
+      </select>
+    </label>
+    <label class="game-select">
+      Game:
+      <select v-model="game">
+        <option value="tennis">Tennis</option>
+        <option value="teams">Anderes</option>
       </select>
     </label>
 
@@ -36,6 +43,11 @@
     />
 
     <textarea v-model="players" placeholder="Spieler pro Zeile"></textarea>
+
+    <label style="display:block; margin-bottom:10px;">
+      <input type="checkbox" v-model="withNebenrunde" />
+      Nebenrunde (B-Runde) für Verlierer der 1. Runde erstellen
+    </label>
 
     <button @click="submit">
       {{ mode === 'tournament' ? 'Turnier erstellen' : 'Teams generieren' }}
@@ -88,11 +100,14 @@ function login() {
 
 // ── Formular‑State ─────────────────────────────────────────────────────
 const mode = ref('tournament'); // 'tournament' | 'teams'
+const game = ref('tennis'); // 'tournament' | 'teams'
+const startDate = ref('');
 const name = ref('');
 const players = ref('');
 const teamSize = ref(2);
 const createdId = ref(null);
 const teams = ref([]);
+const withNebenrunde = ref(false);
 
 // ── Absenden ──────────────────────────────────────────────────────────
 async function submit() {
@@ -116,8 +131,13 @@ async function submit() {
       const res = await axios.post(
         'https://turnier-managment-web-backend.onrender.com/api/tournaments',
         {
-          name: name.value,
+          title: name.value,
           players: playerList,
+          participants: playerList.length,
+          game: game.value,
+          startDate: startDate.value,
+
+          withNebenrunde: withNebenrunde.value,
         }
       );
       createdId.value = res.data.id;

@@ -1,6 +1,6 @@
 <template>
   <div class="container" v-if="!loading && tournament">
-    <h1>Turnier: {{ tournament.name }}</h1>
+    <h1>Turniername: {{ tournament.name }}</h1>
 
     <!-- TURNIERBAUM -->
     <div class="bracket">

@@ -39,7 +39,7 @@ const filteredTournaments = computed(() => {
       <div class="header">
         <h2>Meine Turniere</h2>
         <p>Verwalte deine privaten Turniere und lade Freunde ein</p>
-        <button class="primary-btn">
+        <button @click="router.push({ path: 'turnier-erstellen' })" class="primary-btn">
           <span class="icon">+</span>
           Neues Turnier
         </button>

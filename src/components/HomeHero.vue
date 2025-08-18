@@ -7,7 +7,7 @@
       </div>
 
       <div class="buttons">
-        <button class="primary-btn">
+        <button @click="router.push({ path: 'turnier-erstellen' })" class="primary-btn">
           <span class="icon"></span>
           Turnier erstellen
         </button>
@@ -167,3 +167,9 @@
   color: #666666;
 }
 </style>
+
+<script lang="js" setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+</script>

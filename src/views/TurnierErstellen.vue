@@ -1,5 +1,6 @@
 <template>
   <div v-if="!isAdmin" class="login-container">
+    <h2>Beta Phase! Erstellen nur für Admins möglich</h2>
     <h2>Admin Login</h2>
     <input
       v-model="adminPassword"

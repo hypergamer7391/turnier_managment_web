@@ -49,6 +49,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Calendar, Users, Link2, EyeOff } from "lucide-vue-next"
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 interface Props {
   title: string;

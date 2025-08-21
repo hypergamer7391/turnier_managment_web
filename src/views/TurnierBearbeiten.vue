@@ -90,7 +90,7 @@ const loginError = ref('');
 
 function login() {
   // Beispiel-Passwort: "admin123"
-  if (adminPassword.value === 'stufenfest') {
+  if (adminPassword.value === 'geheim') {
     isAdmin.value = true;
     loginError.value = '';
   } else {

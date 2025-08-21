@@ -212,7 +212,7 @@ const flattenedMatches = computed(() => {
 
         let score = "";
 
-        if (match.result1) {
+        if (match.result1 || match.result2) {
            score = `${match.result1} - ${match.result2}`;
           
         }

@@ -760,7 +760,7 @@ function goBack() {
 
 .table th,
 .table td {
-    padding: 0.5rem;
+    padding: 0.3rem;
     border-bottom: 1px solid #eee;
     text-align: left;
 }
@@ -821,15 +821,15 @@ function goBack() {
   }
 }
 
-.table-wrapper {
+/* .table-wrapper {
   width: 100%;
-  overflow-x: auto;   /* Scrollbar nur, wenn nötig */
+  overflow-x: auto;   /* Scrollbar nur, wenn nötig 
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto; /* passt Spalten an */
-}
+  table-layout: auto; /* passt Spalten an 
+} */
 
 </style>

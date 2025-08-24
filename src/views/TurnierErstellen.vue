@@ -42,6 +42,8 @@
       min="2"
       placeholder="Teamgröße (z.B. 3)"
     />
+    <label for="datum">Startdatum auswählen:</label>
+    <input type="date" id="datum" v-model="startDate">
 
     <textarea v-model="players" placeholder="Spieler pro Zeile"></textarea>
 

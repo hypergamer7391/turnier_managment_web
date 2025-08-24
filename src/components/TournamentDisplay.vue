@@ -20,7 +20,8 @@
 
                         <div class="header-actions">
                             <!-- <button class="btn" @click="copyInviteLink">🔗 Link kopieren</button> -->
-                            <button class="btn primary" @click="router.push(`/turnier/${tournament.id}/bearbeiten`)">🏆 Verwalten</button>
+                            <button class="btn primary" @click="router.push(`/turnier/${tournament.id}/bearbeiten`)">🏆
+                                Verwalten</button>
                             <button class="btn primary" @click="exportBracketAsPDF"> Als PDF herunterladen</button>
                         </div>
                     </div>
@@ -91,8 +92,8 @@
 
                                             <td>
                                                 <span class="status"
-                                                    :class="p.status === 'confirmed' ? 'status-confirmed' : 'status-pending'">
-                                                    {{ p.status === 'confirmed' ? 'Bestätigt' : 'Ausstehend' }}
+                                                    :class="playerStatuses[p.name]?.text?.startsWith('Ausgeschieden') ? 'status-out' : 'status-confirmed'">
+                                                    {{ playerStatuses[p.name]?.text || "Unbekannt" }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -106,13 +107,14 @@
                     <div v-if="selectedTab === 'matches'" class="tab-content">
                         <div class="card">
                             <div class="card-header">Spiele</div>
-                            <div class="card-body">
+                            <div class="card-body table-wrapper">
                                 <table class="table">
                                     <thead>
                                         <tr>
                                             <th>Runde</th>
-                                            <th>Spieler 1</th>
-                                            <th>Spieler 2</th>
+                                            <th class="desktop-only">Spieler 1</th>
+                                            <th class="desktop-only">Spieler 2</th>
+                                            <th class="mobile-only">Spieler</th>
                                             <th>Ergebnis</th>
                                             <th>Status</th>
                                         </tr>
@@ -120,18 +122,28 @@
                                     <tbody>
                                         <tr v-for="(m, i) in flattenedMatches" :key="i">
                                             <td>{{ m.round }}</td>
-                                            <td>{{ m.player1 }}</td>
-                                            <td>{{ m.player2 }}</td>
+
+                                            <!-- Desktop: zwei Spalten -->
+                                            <td class="desktop-only">{{ m.player1 }}</td>
+                                            <td class="desktop-only">{{ m.player2 }}</td>
+
+                                            <!-- Mobile: beide Spieler untereinander -->
+                                            <td class="mobile-only">
+                                                <div>{{ m.player1 }}</div>
+                                                <div>{{ m.player2 }}</div>
+                                            </td>
+
                                             <td class="mono">{{ m.score }}</td>
                                             <td>
                                                 <span class="status"
                                                     :class="m.status === 'finished' ? 'status-confirmed' : m.status === 'upcoming' ? 'status-upcoming' : 'status-pending'">
                                                     {{ m.status === 'finished' ? 'Beendet' : m.status === 'upcoming' ?
-                                                        'Anstehend' : 'Ausstehend' }}
+                                                    'Anstehend' : 'Ausstehend' }}
                                                 </span>
                                             </td>
                                         </tr>
                                     </tbody>
+
                                 </table>
                             </div>
                         </div>
@@ -165,7 +177,7 @@ const route = useRoute();
 const router = useRouter();
 const id = route.params.id || "unknown";
 
-const tabs = ["participants", "matches", "bracket"];
+const tabs = ["participants", "matches"/* , "bracket" */];
 const selectedTab = ref("participants");
 const tournament = ref({});
 const loading = ref(true);
@@ -180,59 +192,63 @@ const roundNames = ["Viertelfinale", "Halbfinale", "Finale"];
 
 
 const flattenedMatches = computed(() => {
-  if (!computedRounds.value) return [];
+    if (!computedRounds.value) return [];
 
-  return computedRounds.value.flatMap((round, rIndex) =>
-    round
-      .map((match, mIndex) => {
-        // Beide Freilos -> überspringen
-        if (match.player1 === "--- Freilos ---" && match.player2 === "--- Freilos ---") {
-          return null;
-        }
+    return computedRounds.value.flatMap((round, rIndex) =>
+        round
+            .map((match, mIndex) => {
+                // Beide Freilos -> überspringen
+                if (match.player1 === "--- Freilos ---" && match.player2 === "--- Freilos ---") {
+                    return null;
+                }
 
-        // Ein Spieler Freilos -> sofort beenden
-        if (match.player1 === "--- Freilos ---") {
-          return {
-            round: `${getRoundAbbr(rIndex)}/${mIndex + 1}`,
-            player1: match.player1,
-            player2: match.player2,
-            score: "-",
-            status: "finished",
-          };
-        }
-        if (match.player2 === "--- Freilos ---") {
-          return {
-            round: `${getRoundAbbr(rIndex)}/${mIndex + 1}`,
-            player1: match.player1,
-            player2: match.player2,
-            score: "-",
-            status: "finished",
-          };
-        }
+                // Ein Spieler Freilos -> sofort beenden
+                // Ein Spieler Freilos -> prüfen ob der andere ein echter Spieler ist
+                if (match.player1 === "--- Freilos ---") {
+                    const isReal = match.player2 && !match.player2.startsWith("Gewinner");
+                    return {
+                        round: `${getRoundAbbr(rIndex)}/${mIndex + 1}`,
+                        player1: match.player1,
+                        player2: match.player2,
+                        score: "-",
+                        status: isReal ? "finished" : "upcoming",
+                    };
+                }
+                if (match.player2 === "--- Freilos ---") {
+                    const isReal = match.player1 && !match.player1.startsWith("Gewinner");
+                    return {
+                        round: `${getRoundAbbr(rIndex)}/${mIndex + 1}`,
+                        player1: match.player1,
+                        player2: match.player2,
+                        score: "-",
+                        status: isReal ? "finished" : "upcoming",
+                    };
+                }
 
-        let score = "";
 
-        if (match.result1 || match.result2) {
-           score = `${match.result1} - ${match.result2}`;
-          
-        }
-        else{
-           score = "-";
- 
-        }
-        console.log("Match:", match, "Score:", score);
+                let score = "";
 
-        // Normales Match
-        return {
-          round: `${getRoundAbbr(rIndex)}/${mIndex + 1}`,
-          player1: match.player1,
-          player2: match.player2,
-          score: score,
-          status: match.winner ? "finished" : "upcoming",
-        };
-      })
-      .filter(Boolean) // nulls (doppelte Freilos) rausfiltern
-  );
+                if (match.result1 || match.result2) {
+                    score = `${match.result1} - ${match.result2}`;
+
+                }
+                else {
+                    score = "-";
+
+                }
+                console.log("Match:", match, "Score:", score);
+
+                // Normales Match
+                return {
+                    round: `${getRoundAbbr(rIndex)}/${mIndex + 1}`,
+                    player1: match.player1,
+                    player2: match.player2,
+                    score: score,
+                    status: match.winner ? "finished" : "upcoming",
+                };
+            })
+            .filter(Boolean) // nulls (doppelte Freilos) rausfiltern
+    );
 });
 
 
@@ -243,61 +259,113 @@ const totalRounds = ref(0);
 const allRounds = ref([]);
 
 const computedRounds = computed(() => {
-  if (!tournament.value?.data?.rounds) return [];
+    if (!tournament.value?.data?.rounds) return [];
 
-  // 1. Erste Runde vorbereiten (inkl. Freilos)
-  const baseRounds = processFreilos([tournament.value.data.rounds[0]]);
-  const rounds = [...baseRounds];
+    // 1. Erste Runde vorbereiten (inkl. Freilos)
+    const baseRounds = processFreilos([tournament.value.data.rounds[0]]);
+    const rounds = [...baseRounds];
 
-  while (rounds[rounds.length - 1].length > 1) {
-    const prev = rounds.at(-1);
-    const next = [];
-    const n = prev.length;
+    while (rounds[rounds.length - 1].length > 1) {
+        const prev = rounds.at(-1);
+        const next = [];
+        const n = prev.length;
 
-    for (let i = 0; i < Math.floor(n / 2); i++) {
-      const m1 = prev[i];
-      const m2 = prev[n - 1 - i];
-      const old = tournament.value.data.rounds[rounds.length]?.[next.length] ?? {};
+        for (let i = 0; i < Math.floor(n / 2); i++) {
+            const m1 = prev[i];
+            const m2 = prev[n - 1 - i];
+            const old = tournament.value.data.rounds[rounds.length]?.[next.length] ?? {};
 
-      next.push({
-        player1: m1?.winner ?? `Gewinner ${getRoundAbbr(rounds.length - 1)}/${i + 1}`,
-        player2: m2?.winner ?? `Gewinner ${getRoundAbbr(rounds.length - 1)}/${n - i}`,
-        winner: old.winner ?? null,
-        result1: old.result1 ?? '',
-        result2: old.result2 ?? '',
-      });
+            next.push({
+                player1: m1?.winner ?? `Gewinner ${getRoundAbbr(rounds.length - 1)}/${i + 1}`,
+                player2: m2?.winner ?? `Gewinner ${getRoundAbbr(rounds.length - 1)}/${n - i}`,
+                winner: old.winner ?? null,
+                result1: old.result1 ?? '',
+                result2: old.result2 ?? '',
+            });
+        }
+
+        // Ungerade Anzahl ⇒ Freilos
+        if (n % 2 === 1) {
+            const m = prev[Math.floor(n / 2)];
+            const old = tournament.value.data.rounds[rounds.length]?.[next.length] ?? {};
+            next.push({
+                player1: m?.winner ?? `Gewinner ${getRoundAbbr(rounds.length - 1)}${Math.floor(n / 2) + 1}`,
+                player2: '--- Freilos ---',
+                winner: old.winner ?? null,
+                result1: old.result1 ?? '',
+                result2: old.result2 ?? ''
+            });
+        }
+
+        processFreilos([next]);
+        rounds.push(next);
     }
 
-    // Ungerade Anzahl ⇒ Freilos
-    if (n % 2 === 1) {
-      const m = prev[Math.floor(n / 2)];
-      const old = tournament.value.data.rounds[rounds.length]?.[next.length] ?? {};
-      next.push({
-        player1: m?.winner ?? `Gewinner ${getRoundAbbr(rounds.length - 1)}${Math.floor(n / 2) + 1}`,
-        player2: '--- Freilos ---',
-        winner: old.winner ?? null,
-        result1: old.result1 ?? '',
-        result2: old.result2 ?? ''
-      });
+    allRounds.value = rounds.map(r => r.map(m => ({ ...m })));
+    totalRounds.value = allRounds.value.length;
+
+    return allRounds.value;
+});
+
+const playerStatuses = computed(() => {
+    const status = {};
+
+    if (!computedRounds.value.length) return status;
+
+    computedRounds.value.forEach((round, rIndex) => {
+        round.forEach((match, mIndex) => {
+            const roundName = getRoundName(rIndex);
+
+            // Beide Spieler mit Status versehen
+            [match.player1, match.player2].forEach(player => {
+                if (!player || player === "--- Freilos ---") return;
+
+                if (!status[player]) {
+                    status[player] = { text: `Aktuell in ${roundName}`, roundIndex: rIndex };
+                }
+            });
+
+            // Wenn es einen Sieger gibt → Verlierer als "ausgeschieden" markieren
+            if (match.winner) {
+                const loser =
+                    match.winner === match.player1 ? match.player2 : match.player1;
+
+                if (loser && loser !== "--- Freilos ---") {
+                    status[loser] = { text: `Ausgeschieden im ${roundName}`, roundIndex: rIndex };
+                }
+
+                // Siegerstatus updaten (falls noch aktiv)
+                status[match.winner] = { text: `Aktuell in ${getRoundName(rIndex + 1)}`, roundIndex: rIndex + 1 };
+            }
+        });
+    });
+
+    // Am Ende: Gewinner bestimmen (Finalrunde Sieger)
+    const finalRound = computedRounds.value.at(-1);
+    if (finalRound?.[0]?.winner) {
+        const champ = finalRound[0].winner;
+        status[champ] = { text: "🏆 Gewinner", roundIndex: totalRounds.value };
     }
 
-    processFreilos([next]);
-    rounds.push(next);
-  }
-
-  allRounds.value = rounds.map(r => r.map(m => ({ ...m })));
-  totalRounds.value = allRounds.value.length;
-
-  return allRounds.value;
+    return status;
 });
 
 function getRoundAbbr(roundIndex) {
-  if (roundIndex === totalRounds.value - 4) return "AF";
-  if (roundIndex === totalRounds.value - 3) return "VF";
-  if (roundIndex === totalRounds.value - 2) return "HF";
-  if (roundIndex === totalRounds.value - 1) return "F";
-  return `R${roundIndex + 1}`;
+    if (roundIndex === totalRounds.value - 4) return "AF";
+    if (roundIndex === totalRounds.value - 3) return "VF";
+    if (roundIndex === totalRounds.value - 2) return "HF";
+    if (roundIndex === totalRounds.value - 1) return "F";
+    return `R${roundIndex + 1}`;
 }
+
+function getRoundName(roundIndex) {
+    if (roundIndex === totalRounds.value - 4) return "Achtelfinale";
+    if (roundIndex === totalRounds.value - 3) return "Viertelfinale";
+    if (roundIndex === totalRounds.value - 2) return "Halbfinale";
+    if (roundIndex === totalRounds.value - 1) return "Finale";
+    return `Runde ${roundIndex + 1}`;
+}
+
 
 
 // Freilos-Logik: wenn ein Match mit "Freilos", Gewinner automatisch setzen
@@ -395,7 +463,7 @@ async function loadTournament() {
 async function exportBracketAsPDF() {
     if (!tournament.value || !tournament.value.data?.rounds) return
 
-    const rounds = tournament.value.data.rounds
+    const rounds = computedRounds.value;
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
 
     const pdfWidth = pdf.internal.pageSize.getWidth()
@@ -426,7 +494,7 @@ async function exportBracketAsPDF() {
 
             // Runde als Überschrift
             pdf.setFont(undefined, 'bold')
-            pdf.text(roundNames[(roundIndex + (pageIndex * half))] || `Runde ${(roundIndex + (pageIndex * half)) + 1}`, x + columnWidth / 2, margin, { align: 'center' })
+            pdf.text(getRoundName(roundIndex + (pageIndex * half)), x + columnWidth / 2, margin, { align: 'center' })
 
             pdf.setFont(undefined, 'normal')
 
@@ -708,13 +776,18 @@ function goBack() {
 
 /* Status Labels */
 .status {
-    padding: 0.2rem 0.5rem;
+    padding: 0.2rem 0.3rem;
     border-radius: 4px;
     font-size: 0.75rem;
 }
 
 .status-confirmed {
     background: #007bff;
+    color: white;
+}
+
+.status-out {
+    background: #ff2929;
     color: white;
 }
 
@@ -727,4 +800,36 @@ function goBack() {
     background: #eee;
     border: 1px solid #bbb;
 }
+
+/* Nur auf Desktop sichtbar */
+.desktop-only {
+  display: table-cell;
+}
+
+/* Nur auf Mobile sichtbar */
+.mobile-only {
+  display: none;
+}
+
+/* Ab 768px runter → Mobile Style */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: table-cell;
+  }
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;   /* Scrollbar nur, wenn nötig */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* passt Spalten an */
+}
+
 </style>
